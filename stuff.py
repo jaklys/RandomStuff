@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -28,7 +29,6 @@ class TestDiscoverConfigFiles(unittest.TestCase):
         self.recipes_dir.mkdir(parents=True)
 
     def tearDown(self):
-        import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_finds_matching_configs(self):
@@ -56,14 +56,16 @@ class TestDiscoverConfigFiles(unittest.TestCase):
 
 class TestParseConfigEnv(unittest.TestCase):
     def test_extracts_env(self):
-        tmp = Path(tempfile.mktemp(suffix=".config"))
-        tmp.write_text(json.dumps({"env": "EMEA-PROD-A", "hostname": "h1"}))
+        with tempfile.NamedTemporaryFile(suffix=".config", mode="w", delete=False) as f:
+            json.dump({"env": "EMEA-PROD-A", "hostname": "h1"}, f)
+            tmp = Path(f.name)
         self.assertEqual(parse_config_env(tmp), "EMEA-PROD-A")
         tmp.unlink()
 
     def test_raises_on_missing_env(self):
-        tmp = Path(tempfile.mktemp(suffix=".config"))
-        tmp.write_text(json.dumps({"hostname": "h1"}))
+        with tempfile.NamedTemporaryFile(suffix=".config", mode="w", delete=False) as f:
+            json.dump({"hostname": "h1"}, f)
+            tmp = Path(f.name)
         with self.assertRaises(ValueError):
             parse_config_env(tmp)
         tmp.unlink()
@@ -75,7 +77,7 @@ class TestConfigFileRelative(unittest.TestCase):
         result = config_file_relative(config, str(Path("tmp") / "Artifacts"))
         self.assertEqual(result, str(Path("Recipes") / "20230428" / "FIAT~ENV#CR.config"))
 
-    def test_works_regardless_of_art_root(self):
+    def test_works_with_any_prefix(self):
         config = Path("any") / "path" / "Recipes" / "20230428" / "FIAT~ENV#CR.config"
         result = config_file_relative(config, "completely/different")
         self.assertEqual(result, str(Path("Recipes") / "20230428" / "FIAT~ENV#CR.config"))
@@ -91,7 +93,6 @@ class TestExecuteRelease(unittest.TestCase):
         (self.recipes_dir / "FIAT~EMEA-UAT2-A#CHG123.config").write_text(json.dumps(config_data))
 
     def tearDown(self):
-        import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @patch("scripts.deploy.chuck_remote_release._http_post_json")
@@ -176,3 +177,15 @@ class TestArtifactRoots(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+
+def config_file_relative(config_path: Path, art_root: str) -> str:
+    """Compute config_file path relative to art_root (what chuck release expects).
+
+    Structure is always: {art_root}/Recipes/{date}/{filename}
+    Result:              Recipes/{date}/{filename}
+    """
+    return str(Path("Recipes") / config_path.parent.name / config_path.name)
