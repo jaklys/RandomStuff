@@ -188,4 +188,11 @@ def config_file_relative(config_path: Path, art_root: str) -> str:
     Structure is always: {art_root}/Recipes/{date}/{filename}
     Result:              Recipes/{date}/{filename}
     """
+    full = str(config_path)
+    root = str(art_root).rstrip("/\\")
+    # Strip art_root prefix (handles both / and \ separators)
+    for sep in (root + "\\", root + "/"):
+        if full.startswith(sep):
+            return full[len(sep):]
+    # Fallback: construct from known directory structure
     return str(Path("Recipes") / config_path.parent.name / config_path.name)
