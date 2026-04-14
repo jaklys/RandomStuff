@@ -1,0 +1,31 @@
+Detaily pro Insomnia request:
+
+POST /release
+URL
+
+
+https://gbrdsm020005206.intranet.barcapint.com:6302/release
+Method: POST
+
+Headers
+
+
+Authorization: Bearer <tvuj_BAM_JWT_token>
+Content-Type: application/json
+Body (JSON)
+
+
+{
+  "config_file": "Recipes\\20260415\\FIAT~EMEA-UAT2-A#CR1111111111.config",
+  "art_root": "\\\\intranet.barcapint.com\\dfs-emea\\GROUP\\Ldn\\EDT\\FIAT\\Artifacts",
+  "chuck_working_dir": "C:\\Program Files\\Barclays Capital\\EDT\\FIAT\\Chuck\\GL.2024.03.5",
+  "deploy_id": "insomnia-test-1"
+}
+
+
+Před odesláním ověř
+1. .config soubor
+Musí fyzicky existovat na cestě:
+
+
+\\intranet.barcapint.com\dfs-emea\GROUP\Ldn\EDT\FIAT\Artifacts\Recipes\20260415\FIAT~EMEA-UAT2-A#CR1111111111.config
