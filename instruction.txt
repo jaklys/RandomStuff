@@ -29,3 +29,29 @@ Musí fyzicky existovat na cestě:
 
 
 \\intranet.barcapint.com\dfs-emea\GROUP\Ldn\EDT\FIAT\Artifacts\Recipes\20260415\FIAT~EMEA-UAT2-A#CR1111111111.config
+
+
+
+
+
+# Emulate the Nolio-compatible release invocation: pass --action install
+# with --deploy_name "release:<config_file>". chuck.py execute_local
+# detects the "release:" prefix, rewrites args.action to "release", and
+# dispatches to release.main_release. This keeps push.main_push happy
+# because sys.argv still carries a non-None --deploy_name, avoiding the
+# "'NoneType' is not iterable" crash on push.py:313 that occurs when
+# calling chuck.exe directly with --action release --config_file X.
+release_deploy_name = f"release:{req.config_file}"
+cmd: List[str] = [
+    str(chuck_exe),
+    "--action",
+    "install",
+    "--deploy_name",
+    release_deploy_name,
+    "--art_root",
+    req.art_root,
+    "--deploy_id",
+    deploy_id,
+    "--deploy_user",
+    current_user,
+]
